@@ -9,6 +9,15 @@ A tiny, polite web graph weaver (crawler) inspired by **ant colony optimization*
 
 This package is intentionally dependency-free and small.
 
+## Reading order
+
+1. `docs/INDEX.md`
+2. `docs/FORK_TALES_SOURCE_MAP.md`
+3. `specs/core-engine-contract.md`
+4. `specs/frontier-and-pheromone-model.md`
+5. `specs/ethical-crawling-contract.md`
+6. `specs/fetch-backend-contract.md`
+
 ## Concepts
 
 - **Frontier**: discovered URLs with visit metadata.
@@ -35,3 +44,8 @@ weaver.onEvent((ev) => {
 weaver.seed(["https://example.com/"]);
 weaver.start();
 ```
+
+## Adjacent repos
+
+- `octave-commons/graph-weaver` — service/UI/local+web graph workbench
+- `octave-commons/myrmex` — richer extraction and ingestion orchestrator
