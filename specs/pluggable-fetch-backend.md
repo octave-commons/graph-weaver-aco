@@ -142,8 +142,8 @@ export type WeaverPageEvent = {
 - `orgs/octave-commons/graph-weaver-aco/src/index.ts` — export new types and `SimpleFetchBackend`
 
 ### Myrmex changes
-- `packages/myrmex/src/shuvcrawl-client.ts` — implement `FetchBackend` using ShuvCrawl API
-- `packages/myrmex/src/Myrmex.ts` — inject ShuvCrawl backend into GraphWeaver ACO
+- `orgs/octave-commons/myrmex/src/shuvcrawl-client.ts` — implement `FetchBackend` using ShuvCrawl API
+- `orgs/octave-commons/myrmex/src/Myrmex.ts` — inject ShuvCrawl backend into GraphWeaver ACO
 
 ## Verification
 - GraphWeaver ACO works unchanged with default `SimpleFetchBackend`

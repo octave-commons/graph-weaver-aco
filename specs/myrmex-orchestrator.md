@@ -232,13 +232,13 @@ Nodes and edges stored as structured events:
 ## Deployment
 
 ### Package location
-`packages/myrmex/` — TypeScript package, Bun runtime
+`orgs/octave-commons/myrmex/` — TypeScript package, Bun runtime
 
 ### Compose service
 ```yaml
 services:
   myrmex:
-    build: ../../packages/myrmex
+    build: ../../orgs/octave-commons/myrmex
     networks:
       - gateway
     depends_on:
@@ -257,18 +257,18 @@ services:
 ## Affected files
 
 ### New: Myrmex package
-- `packages/myrmex/` — new package
-- `packages/myrmex/src/Myrmex.ts` — main orchestrator class
-- `packages/myrmex/src/shuvcrawl-client.ts` — ShuvCrawl API client
-- `packages/myrmex/src/graph-store.ts` — graph persistence to OpenPlanner
-- `packages/myrmex/src/event-router.ts` — event routing to Proxx
-- `packages/myrmex/src/checkpoint.ts` — checkpoint save/restore
-- `packages/myrmex/src/config.ts` — configuration management
-- `packages/myrmex/src/types.ts` — type definitions
-- `packages/myrmex/src/index.ts` — public API
-- `packages/myrmex/package.json`
-- `packages/myrmex/tsconfig.json`
-- `packages/myrmex/Dockerfile`
+- `orgs/octave-commons/myrmex/` — new package
+- `orgs/octave-commons/myrmex/src/Myrmex.ts` — main orchestrator class
+- `orgs/octave-commons/myrmex/src/shuvcrawl-client.ts` — ShuvCrawl API client
+- `orgs/octave-commons/myrmex/src/graph-store.ts` — graph persistence to OpenPlanner
+- `orgs/octave-commons/myrmex/src/event-router.ts` — event routing to Proxx
+- `orgs/octave-commons/myrmex/src/checkpoint.ts` — checkpoint save/restore
+- `orgs/octave-commons/myrmex/src/config.ts` — configuration management
+- `orgs/octave-commons/myrmex/src/types.ts` — type definitions
+- `orgs/octave-commons/myrmex/src/index.ts` — public API
+- `orgs/octave-commons/myrmex/package.json`
+- `orgs/octave-commons/myrmex/tsconfig.json`
+- `orgs/octave-commons/myrmex/Dockerfile`
 
 ### GraphWeaver ACO changes
 - `orgs/octave-commons/graph-weaver-aco/src/GraphWeaverAco.ts` — add pluggable fetch backend interface
