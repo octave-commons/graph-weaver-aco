@@ -4,8 +4,10 @@ A tiny, polite web graph weaver (crawler) inspired by **ant colony optimization*
 
 - multiple “ants” walk a growing hyperlink graph
 - selection is novelty-biased, but allows revisits (staleness-aware)
+- host-heavy candidate sets are penalized so one sitemap flood does not monopolize traversal
 - slow + steady dispatch cadence (designed to grow a graph forever)
 - basic robots.txt respect + per-host pacing
+- `start()` / `stop()` are reversible pause/resume controls for long-lived crawls
 
 This package is intentionally dependency-free and small.
 

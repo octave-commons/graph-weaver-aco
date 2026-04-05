@@ -1,4 +1,4 @@
-import type { FetchBackend } from "./fetch-backend.js";
+import type { DiscoveredLink, FetchBackend } from "./fetch-backend.js";
 
 export type WeaverUrl = string;
 
@@ -9,6 +9,7 @@ export type WeaverPageEvent = {
   contentType: string;
   fetchedAt: number;
   outgoing: WeaverUrl[];
+  outgoingLinks?: DiscoveredLink[];
   content?: string;
   title?: string;
   metadata?: Record<string, unknown>;
@@ -27,6 +28,7 @@ export type GraphWeaverAcoOptions = {
   userAgent?: string;
   ants?: number;
   dispatchIntervalMs?: number;
+  maxDispatchBurst?: number;
   maxConcurrency?: number;
   perHostMinIntervalMs?: number;
   requestTimeoutMs?: number;
@@ -42,6 +44,9 @@ export type GraphWeaverAcoOptions = {
 
   /** Hard cap on stored frontier size (drops least-relevant). */
   maxFrontier?: number;
+
+  /** Penalize hosts that dominate the current candidate set so sitemap-heavy domains do not monopolize traversal. */
+  hostBalanceExponent?: number;
 
   /** Startup jitter to avoid synchronized background bursts. */
   startupJitterMs?: number;
