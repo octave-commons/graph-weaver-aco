@@ -1,5 +1,16 @@
 import { extractHttpLinksFromHtml } from "./url.js";
 
+export interface DiscoveredLink {
+  url: string;
+  source?: "page" | "sitemap" | "feed";
+  text?: string | null;
+  rel?: string | null;
+  context?: string | null;
+  domPath?: string | null;
+  blockSignature?: string | null;
+  blockRole?: string | null;
+}
+
 export interface FetchResult {
   url: string;
   status: number;
@@ -9,6 +20,7 @@ export interface FetchResult {
   title?: string;
   metadata?: Record<string, unknown>;
   outgoing?: string[];
+  outgoingLinks?: DiscoveredLink[];
   error?: string;
 }
 
@@ -47,15 +59,17 @@ export class SimpleFetchBackend implements FetchBackend {
       const contentType = String(res.headers.get("content-type") || "");
       const status = res.status;
       const body = await res.text();
-      const outgoing = contentType.includes("text/html")
-        ? extractHttpLinksFromHtml(body, url)
+      const outgoingLinks = contentType.includes("text/html")
+        ? extractHttpLinksFromHtml(body, url).map((link) => ({ url: link, source: "page" as const }))
         : [];
+      const outgoing = outgoingLinks.map((link) => link.url);
       return {
         url,
         status,
         contentType,
         html: contentType.includes("text/html") ? body : undefined,
         outgoing,
+        outgoingLinks,
       };
     } catch (err) {
       return {
