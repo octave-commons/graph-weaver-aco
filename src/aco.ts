@@ -1,12 +1,14 @@
 import type { WeaverUrl } from "./types.js";
 import type { Frontier, UrlState } from "./frontier.js";
 import { clamp, weightedChoiceIndex } from "./utils.js";
+import { hostOf } from "./url.js";
 
 export type AcoChoiceParams = {
   now: number;
   alpha: number;
   beta: number;
   revisitAfterMs: number;
+  hostBalanceExponent?: number;
 };
 
 function heuristic(state: UrlState, now: number, revisitAfterMs: number): number {
@@ -29,12 +31,22 @@ export function chooseNextUrl(params: {
   const alpha = clamp(aco.alpha, 0, 4);
   const beta = clamp(aco.beta, 0, 6);
   const revisitAfterMs = Math.max(1000, aco.revisitAfterMs);
+  const hostBalanceExponent = clamp(aco.hostBalanceExponent ?? 0, 0, 2);
+  const hostCandidateCounts = new Map<string, number>();
+  for (const url of candidates) {
+    const host = hostOf(url);
+    if (!host) continue;
+    hostCandidateCounts.set(host, (hostCandidateCounts.get(host) ?? 0) + 1);
+  }
 
   const weights = candidates.map((url) => {
     const st = frontier.get(url) ?? frontier.ensure(url);
     const tau = Math.max(0.01, st.pheromone);
     const eta = Math.max(0.001, heuristic(st, now, revisitAfterMs));
-    return Math.pow(tau, alpha) * Math.pow(eta, beta);
+    const host = hostOf(url);
+    const hostCount = host ? Math.max(1, hostCandidateCounts.get(host) ?? 1) : 1;
+    const hostPenalty = hostBalanceExponent > 0 ? 1 / Math.pow(hostCount, hostBalanceExponent) : 1;
+    return Math.pow(tau, alpha) * Math.pow(eta, beta) * hostPenalty;
   });
 
   const idx = weightedChoiceIndex(weights, rng);

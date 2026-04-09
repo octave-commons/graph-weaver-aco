@@ -28,7 +28,8 @@ export class GraphWeaverAco {
   private readonly listeners = new Set<(ev: WeaverEvent) => void>();
 
   private started = false;
-  private cancelled = false;
+  private dispatchPaused = true;
+  private loopPromise: Promise<void> | null = null;
   private inFlight = 0;
   private lastDispatchAt = 0;
 
@@ -38,6 +39,7 @@ export class GraphWeaverAco {
       userAgent: rest.userAgent ?? "devel-graph-weaver/0.1",
       ants: rest.ants ?? 4,
       dispatchIntervalMs: rest.dispatchIntervalMs ?? 15000,
+      maxDispatchBurst: rest.maxDispatchBurst ?? Math.max(1, rest.maxConcurrency ?? 2),
       maxConcurrency: rest.maxConcurrency ?? 2,
       perHostMinIntervalMs: rest.perHostMinIntervalMs ?? 4000,
       requestTimeoutMs: rest.requestTimeoutMs ?? 15000,
@@ -47,6 +49,7 @@ export class GraphWeaverAco {
       evaporation: rest.evaporation ?? 0.03,
       deposit: rest.deposit ?? 0.35,
       maxFrontier: rest.maxFrontier ?? 20000,
+      hostBalanceExponent: rest.hostBalanceExponent ?? 0.7,
       startupJitterMs: rest.startupJitterMs ?? 3000,
     };
     this.backend = fetchBackend ?? new SimpleFetchBackend({ userAgent: this.opts.userAgent });
@@ -72,14 +75,17 @@ export class GraphWeaverAco {
   }
 
   start(): void {
+    this.dispatchPaused = false;
     if (this.started) return;
     this.started = true;
-    this.cancelled = false;
-    void this.loop();
+    this.loopPromise = this.loop().finally(() => {
+      this.started = false;
+      this.loopPromise = null;
+    });
   }
 
   stop(): void {
-    this.cancelled = true;
+    this.dispatchPaused = true;
   }
 
   stats(): { frontier: number; inFlight: number } {
@@ -121,7 +127,7 @@ export class GraphWeaverAco {
     await sleep(jitter);
     let evaporateAt = Date.now() + 60_000;
 
-    while (!this.cancelled) {
+    while (true) {
       const now = Date.now();
       if (now >= evaporateAt) {
         this.frontier.evaporate(this.opts.evaporation);
@@ -129,12 +135,20 @@ export class GraphWeaverAco {
       }
 
       const canDispatch =
+        !this.dispatchPaused &&
         this.inFlight < this.opts.maxConcurrency &&
         now - this.lastDispatchAt >= this.opts.dispatchIntervalMs;
 
       if (canDispatch) {
-        const launched = await this.dispatchOne(now);
-        if (launched) {
+        let launched = 0;
+        const availableSlots = Math.max(0, this.opts.maxConcurrency - this.inFlight);
+        const burst = Math.max(1, Math.min(this.opts.maxDispatchBurst, availableSlots));
+        for (let i = 0; i < burst; i += 1) {
+          const ok = await this.dispatchOne(now);
+          if (!ok) break;
+          launched += 1;
+        }
+        if (launched > 0) {
           this.lastDispatchAt = now;
         }
       }
@@ -181,6 +195,7 @@ export class GraphWeaverAco {
         alpha: this.opts.alpha,
         beta: this.opts.beta,
         revisitAfterMs: this.opts.revisitAfterMs,
+        hostBalanceExponent: this.opts.hostBalanceExponent,
       },
     });
     if (!next) return false;
@@ -218,7 +233,8 @@ export class GraphWeaverAco {
         return;
       }
 
-      const outgoing = result.outgoing ?? [];
+      const outgoingLinks = result.outgoingLinks ?? (result.outgoing ?? []).map((link) => ({ url: link }));
+      const outgoing = outgoingLinks.map((link) => link.url);
       this.frontier.noteVisit(url);
       this.frontier.noteOutgoing(url, outgoing);
 
@@ -237,6 +253,7 @@ export class GraphWeaverAco {
         contentType: result.contentType,
         fetchedAt: startedAt,
         outgoing,
+        outgoingLinks,
         content: result.content,
         title: result.title,
         metadata: result.metadata,
