@@ -11,6 +11,9 @@ A tiny, polite web graph weaver (crawler) inspired by **ant colony optimization*
 
 This package is intentionally dependency-free and small.
 
+
+> Built with [GLM-5](https://z.ai) — part of the [z.ai](https://z.ai) startup ecosystem and the [Ussyverse](https://ussy.cloud).
+
 ## Reading order
 
 1. `docs/INDEX.md`
